@@ -1,5 +1,5 @@
 @REM 1. install Repo
-git clone https://github.com/LksWllmnn/visual_navigation_3dgs.git
+git clone https://github.com/LksWllmnn/finetune_eval_th.git
 
 @REM 3. create Virtual Environment
 python -m venv .venv
