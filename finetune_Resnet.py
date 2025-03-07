@@ -172,7 +172,7 @@ def main():
         num_epochs=15
     )
 
-    torch.save(model_ft.state_dict(), "big-surround_resnet50_model.pth")
+    torch.save(model_ft.state_dict(), "")
 
 if __name__ == "__main__":
     main()

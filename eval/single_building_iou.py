@@ -3,9 +3,6 @@ import numpy as np
 from pathlib import Path
 
 def calculate_iou(mask_gt, mask_pred):
-    """
-    Berechnet die Intersection over Union (IoU) zweier Masken.
-    """
     mask_gt_bin = (mask_gt > 0).astype(np.uint8)
     mask_pred_bin = (mask_pred > 0).astype(np.uint8)
 
@@ -15,9 +12,6 @@ def calculate_iou(mask_gt, mask_pred):
     return intersection / union if union > 0 else 0
 
 def load_image_as_mask(image_path):
-    """
-    Lädt ein Bild und konvertiert es in eine binäre Maske.
-    """
     if image_path is None or not image_path.exists():
         return None
     image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
@@ -26,40 +20,27 @@ def load_image_as_mask(image_path):
     return image
 
 def compare_masks(gt_path, pred_path):
-    """
-    Vergleicht eine Ground-Truth-Maske mit einer vorhergesagten Maske und berechnet die IoU.
-    Zusätzlich klassifiziert die Methode die Vorhersage in vier Kategorien.
-    """
     mask_gt = load_image_as_mask(gt_path)
     mask_pred = load_image_as_mask(pred_path)
 
-    # Überprüfung auf komplett schwarze vorhergesagte Bilder
     if mask_pred is not None and np.sum(mask_pred) == 0:
         mask_pred = None
 
     if mask_gt is None and mask_pred is not None:
-        # Gebäude wurde fälschlicherweise vorhergesagt
         return 0.0, "Falsch vorhanden"
     elif mask_gt is not None and mask_pred is None:
-        # Gebäude wurde fälschlicherweise nicht vorhergesagt
         return 0.0, "Falsch nicht vorhanden"
     elif mask_gt is None and mask_pred is None:
-        # Gebäude ist korrekt nicht vorhanden
         return None, "Richtig nicht vorhanden"
     else:
-        # Gebäude ist korrekt vorhanden
         iou = calculate_iou(mask_gt, mask_pred)
         return iou, "Richtig vorhanden"
 
 def process_directory(gt_dir, pred_dir, output_log, mapping):
-    """
-    Verarbeitet die Ground-Truth- und Vorhersage-Ordner und berechnet IoU-Werte für alle Paare.
-    """
     gt_dir = Path(gt_dir)
     pred_dir = Path(pred_dir)
     output_log = Path(output_log)
 
-    # Erstellen des Logs
     with output_log.open("w") as log_file:
         log_file.write("Building, GT_Image, Pred_Image, IoU, Category\n")
         
@@ -72,10 +53,8 @@ def process_directory(gt_dir, pred_dir, output_log, mapping):
                 pred_image = pred_files.get(pred_index, None)
                 iou, cat = compare_masks(gt_image, pred_image)
 
-                # Protokoll in die Log-Datei schreiben
                 log_file.write(f"{building}, {gt_index or 'None'}, {pred_index or 'None'}, {iou if iou is not None else 'N/A'}, {cat}\n")
 
-# Beispielkonfiguration
 BUILDING_COLORS = {
     "A-Building": (0, 0, 255, 255),
     "B-Building": (0, 255, 0, 255),
@@ -103,13 +82,8 @@ mapping = {
     "00006": "654",
 }
 
-gt_dir = Path(r"F:\Studium\Master\Thesis\data\perception\usefull_data\test_data\segmented_semantic_segmentation")
+gt_dir = Path(r"")
 
-#lerf-lite stuff
-# pred_dir = Path(r"F:\Studium\Master\Thesis\data\perception\usefull_data\lerf-lite-data\renders\no-finetuning\just-mask")
-# output_log = Path(r"F:\Studium\Master\Thesis\data\perception\usefull_data\lerf-lite-data\renders\no-finetuning\just-mask\output_log.txt")
-
-# resnet stuff
-pred_dir = Path(r"F:\Studium\Master\Thesis\data\final_final_results\resnet_scene\just-mask")
-output_log = Path(r"F:\Studium\Master\Thesis\data\final_final_results\resnet_scene\just-mask\output_log.csv")
+pred_dir = Path(r"")
+output_log = Path(r"... \output_log.csv")
 process_directory(gt_dir=gt_dir, pred_dir=pred_dir, output_log=output_log, mapping=mapping)

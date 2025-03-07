@@ -59,13 +59,6 @@ def calculate_iou(pred_mask, target_mask):
     return iou
 
 def calculate_segmentation_accuracy(model, data_loader, device):
-    """
-    Berechnet die Pixel-Level-Accuracy für das Segmentierungsmodell.
-    :param model: Das Mask R-CNN-Modell
-    :param data_loader: DataLoader für Validierungsdaten
-    :param device: Torch-Device (CPU/GPU)
-    :return: Durchschnittliche Accuracy
-    """
     correct_pixels = 0
     total_pixels = 0
 
@@ -84,7 +77,7 @@ def calculate_segmentation_accuracy(model, data_loader, device):
 
     return correct_pixels / total_pixels
 
-def train_and_evaluate(model, train_loader, val_loader, device, num_epochs, lr, save_path="big-surround_mrcnn_model.pth"):
+def train_and_evaluate(model, train_loader, val_loader, device, num_epochs, lr, save_path=""):
     optimizer = torch.optim.SGD([p for p in model.parameters() if p.requires_grad], lr=lr, momentum=0.9, weight_decay=0.0005)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
     
@@ -156,7 +149,7 @@ if __name__ == "__main__":
     model.to(device)
 
     train_losses, val_losses, iou_scores, accuracies = train_and_evaluate(
-        model, train_loader, val_loader, device, num_epochs=10, lr=0.005, save_path="scene_mrcnn_model.pth"
+        model, train_loader, val_loader, device, num_epochs=10, lr=0.005, save_path=""
     )
 
     save_plots_and_logs(train_losses, val_losses, iou_scores, accuracies)
