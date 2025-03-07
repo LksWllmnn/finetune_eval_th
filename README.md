@@ -13,7 +13,7 @@ utils.py
 were used from the pytorch repository (vision/references/detection at main · pytorch/vision)
 
 ## Finetuning
-The fine-tuning can be obtained from [this link](). This can be used to train the respective Mask R-CNN, ResNet and CLIP models.
+The fine-tuning data can be obtained from [this link](https://bwsyncandshare.kit.edu/s/GjHSZWtDFciHXYs). This can be used to train the respective Mask R-CNN, ResNet and CLIP models.
 
 Starting from the Big-Surround fine-tuning dataset, the path to the dataset can be stored in the script [finetune_CLIP.py](./finetune_CLIP.py) in line 111 r“.\finetune_data\building_big_surround_pictures” depending on where the dataset was stored. The Name of the Model can be changed in line 22.
 
@@ -22,10 +22,10 @@ For the Mask R-CNN model, the path can be stored in the script [finetune_MRCNN.p
 For ResNet in the script [finetune_Resnet.py](./finetune_Resnet.py) in line 134. The name of the saved model can be changed in line 175.
 
 The scripts then save the models in the same path where the scripts are located. These can then be used to apply the respective techniques to the test images.
-LeRF and feature splatting are explained in the respective repositories. Pre-trained models can be downloaded from [this share]().
+LeRF and feature splatting are explained in the respective repositories. Pre-trained models can be downloaded from [this share](https://bwsyncandshare.kit.edu/s/WKsJY3EdDQcX7kK).
 
 ## Using Mask R-CNN and ResNet + SAM - Approach
-For Mask R-CNN, the script [M-RCNN_identifyer.py](./M-RCNN_identifier.py) can be used. In line 66, the path to the finetuned model must be entered. In line 124, the path to the images to be analyzed. (The test images from the thesis can be found at this link)
+For Mask R-CNN, the script [M-RCNN_identifyer.py](./M-RCNN_identifier.py) can be used. In line 66, the path to the finetuned model must be entered. In line 124, the path to the images to be analyzed. (The test images from the thesis can be found at [this link](https://bwsyncandshare.kit.edu/s/cp8TQoXe3BWMfqA))
 In line 125, the path to the output folder can be stored where the images with the masking should be saved.
 
 The script [ResNet_identifier.py](./ResNet_identifier.py) can be used for the ResNet + SAM approach. It is assumed that a SAM model can be found under the path “./chkpts/sam_vit_h_4b8939.pth”. This can be changed if necessary on line 127. A SAM model can be downloaded from [this link](https://github.com/facebookresearch/segment-anything?tab=readme-ov-file#model-checkpoints). (In this Project the Model ViT-H SAM was used)
@@ -40,7 +40,7 @@ The following steps must be taken for the evaluation.
 2. The ground truth masks and the “just-mask” images of the individual techniques must be stored.
 3. the generated.csv files of a technique must be specified in the correct order in the plots.py file.
 
-The script [extract_building_segments.py](./eval/extract_building_segments.py) can be used to generate the masks for the test images. For each image, the path to the semantic segmentation image must be specified on line 44, in line 45 the image number (925 Images where createt in the scene path to create the radiance field) and in line 46 the path where the results are to be saved. For simplification, you can simply use the segmented data set from [here]().
+The script [extract_building_segments.py](./eval/extract_building_segments.py) can be used to generate the masks for the test images. For each image, the path to the semantic segmentation image must be specified on line 44, in line 45 the image number (925 Images where createt in the scene path to create the radiance field) and in line 46 the path where the results are to be saved. For simplification, you can simply use the segmented data set from [here](https://bwsyncandshare.kit.edu/s/WbJdmSY62kQJ6Zj).
 
 In with the [single_building_iou.py](eval/single_building_iou.py), the iou of a technique can be calculated with respect to a fine-tuning data set. The script assumes that the folder structure is organized as follows when calculating:
 
@@ -49,7 +49,7 @@ In with the [single_building_iou.py](eval/single_building_iou.py), the iou of a 
     - B-Building
     - C-Building...
 
-Example Folder Structure can be found in [this link](), where the results of this thesis are.
+Example Folder Structure can be found in [this link](https://bwsyncandshare.kit.edu/s/aaRD6zBT4eCS5xN), where the results of this thesis are.
 The path to the individual extracted ground-truth masks can be stored in line 106. The path to the images in which only the predicted masks of a technique of a fine-tuning data set are located can be stored in line 108. In line 109, a path must then be specified where the csv file in which the results are stored is to be saved.
 
 In the [plots.py](./eval/plots.py) script, the .csv files must be specified in lines 23 - 26. the script is adapted so that the csv. files without fine-tuning are specified first, then those of the big-surround data set, then scene and then those of the surround data set.
