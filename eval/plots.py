@@ -44,12 +44,13 @@ for i, df in enumerate(dataframes):
         median = df_filtered[" IoU"].median(numeric_only=True)
         mean = df_filtered[" IoU"].mean()
         count = df_filtered[" IoU"].count()
+        variance = df_filtered[" IoU"].var()
         
         sns.boxplot(y=df_filtered[" IoU"], ax=ax[i])
-        ax[i].set_title(f"{map_filename(i)} (Mean: {mean: .3f}, Count: {count}, Median: {median: .3f})")
+        ax[i].set_title(f"{map_filename(i)} (Mean: {mean: .3f}, Var: {variance: .3f}, Median: {median: .3f})")
         
         ax[i].set_ylabel("IoU" if i == 0 else "")
-        ax[i].set_xlabel("Boxplot")
+        ax[i].set_xlabel(f"Boxplot (n={count})")
 
 plt.tight_layout()
 boxplot_path = os.path.join(output_folder, f"{tech}_boxplots_iou.png")
@@ -65,14 +66,14 @@ def map_to_labels(category, is_true_label=True):
     """
     if is_true_label:
         if category in [" Richtig vorhanden", " Falsch nicht vorhanden"]:
-            return "vorhanden"
+            return "present"
         elif category in [" Richtig nicht vorhanden", " Falsch vorhanden"]:
-            return "nicht vorhanden"
+            return "not present"
     else:
         if category in [" Richtig vorhanden", " Falsch vorhanden"]:
-            return "vorhanden"
+            return "present"
         elif category in [" Richtig nicht vorhanden", " Falsch nicht vorhanden"]:
-            return "nicht vorhanden"
+            return "not present"
     return None
 
 all_true_labels = []

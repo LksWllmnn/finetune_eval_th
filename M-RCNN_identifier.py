@@ -1,3 +1,5 @@
+# based on https://pytorch.org/tutorials/intermediate/torchvision_tutorial.html 14.01.2025
+
 import os
 import matplotlib.pyplot as plt
 from torchvision.utils import draw_bounding_boxes, draw_segmentation_masks
@@ -7,13 +9,23 @@ import torchvision
 from torchvision.transforms import v2 as T
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
+import time
+
+def measure_time(func):
+    """Dekorator zur Messung der Ausführungszeit einer Funktion."""
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        print(f"{func.__name__} dauerte {end_time - start_time:.4f} Sekunden.")
+        return result
+    return wrapper
 
 def get_transform(train):
     transforms = []
     transforms.append(T.ToTensor())
     return T.Compose(transforms)
 
-# Load the pre-trained Mask R-CNN model
 def get_model_instance_segmentation(num_classes):
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
@@ -33,9 +45,9 @@ ID_TO_NAME = {
     6: "G-Building",
     7: "H-Building",
     8: "I-Building",
-    9: "L-Building",
-    10: "M-Building",
-    11: "N-Building",
+    9: "M-Building",
+    10: "N-Building",
+    11: "L-Building",
     12: "O-Building",
     13: "R-Building",
     14: "Z-Building",
@@ -43,37 +55,37 @@ ID_TO_NAME = {
 
 ID_TO_COLOR = {
     0: "gray",       # Background
-    1: "blue",       # A-Building
-    2: "green",      # B-Building
-    3: "yellow",     # C-Building
-    4: "orange",     # E-Building
-    5: "cyan",       # F-Building
-    6: "purple",     # G-Building
-    7: "pink",       # H-Building
-    8: "red",        # I-Building
-    9: "brown",      # L-Building
-    10: "magenta",   # M-Building
-    11: "lime",      # N-Building
-    12: "turquoise", # O-Building
-    13: "gold",      # R-Building
-    14: "navy",      # Z-Building
+    1: (0, 0, 255),       # A-Building
+    2: (0, 255, 0),      # B-Building
+    3: (255, 0, 0),     # C-Building
+    4: (255, 255, 255),     # E-Building
+    5: (255, 235, 4),       # F-Building
+    6: (128, 128, 128),     # G-Building
+    7: (255, 32, 98),       # H-Building
+    8: (255, 25, 171),        # I-Building
+    9: (145, 255, 114),      # M-Building
+    10: (93, 71, 255),   # N-Building
+    11: (255, 73, 101),      # L-Building
+    12: (153, 168, 255), # O-Building
+    13: (64, 0, 75),      # R-Building
+    14: (18, 178, 0),
 }
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-num_classes = len(ID_TO_NAME)
-model = get_model_instance_segmentation(num_classes)
-model.load_state_dict(torch.load(r"", map_location=device))
-model.to(device)
-model.eval()
-
-eval_transform = get_transform(train=False)
-
-def analyze_and_save_images(input_folder, output_folder, confidence_threshold=0.5):
+@measure_time
+def analyze_and_save_images(input_folder, output_folder, model, device, eval_transform, confidence_threshold=0.5,  ):
     """
-    analyse pictures
+    Analysiert alle Bilder in einem Ordner und speichert die Ergebnisse in den angegebenen Ausgabeverzeichnissen.
     """
-    os.makedirs(output_folder, exist_ok=True)
+    combined_folder = os.path.join(output_folder, "combined")
+    qualitative_folder = os.path.join(output_folder, "qualitative")
+    just_mask_folder = os.path.join(output_folder, "just-mask")
+    os.makedirs(combined_folder, exist_ok=True)
+    os.makedirs(qualitative_folder, exist_ok=True)
+    os.makedirs(just_mask_folder, exist_ok=True)
+    for class_name in ID_TO_NAME.values():
+        if class_name != "Background":
+            os.makedirs(os.path.join(qualitative_folder, class_name), exist_ok=True)
+            os.makedirs(os.path.join(just_mask_folder, class_name), exist_ok=True)
 
     image_files = [
         f for f in os.listdir(input_folder) 
@@ -82,8 +94,6 @@ def analyze_and_save_images(input_folder, output_folder, confidence_threshold=0.
 
     for image_file in image_files:
         image_path = os.path.join(input_folder, image_file)
-        output_path = os.path.join(output_folder, image_file)
-
         image = Image.open(image_path).convert("RGB")
         image_tensor = eval_transform(image).to(device).unsqueeze(0)
 
@@ -98,30 +108,68 @@ def analyze_and_save_images(input_folder, output_folder, confidence_threshold=0.
         boxes = pred["boxes"]
         masks = (pred["masks"] > confidence_threshold).squeeze(1)
 
+        mask_colors = [ID_TO_COLOR[label.item()] for label in labels]
+
+        # COMBINED OUTPUT
         valid_indices = [
-            i for i, (label, score) in enumerate(zip(labels, scores)) 
-            if label.item() != 15 and score >= confidence_threshold
+            i for i, score in enumerate(scores) if score >= confidence_threshold
         ]
         filtered_boxes = boxes[valid_indices]
         filtered_labels = labels[valid_indices]
-        filtered_scores = scores[valid_indices]
         filtered_masks = masks[valid_indices]
-
-        mask_colors = [ID_TO_COLOR[label.item()] for label in filtered_labels]
 
         pred_labels = [
             f"{ID_TO_NAME[label.item()]}: {score:.3f}"
-            for label, score in zip(filtered_labels, filtered_scores)
+            for label, score in zip(filtered_labels, scores[valid_indices])
         ]
 
-        output_image = draw_segmentation_masks(image_display, filtered_masks, alpha=0.5, colors=mask_colors)
-        output_image = draw_bounding_boxes(output_image, filtered_boxes.long(), labels=pred_labels, colors="red")
+        combined_image = draw_segmentation_masks(image_display, filtered_masks, alpha=0.5, colors=mask_colors)
+        combined_image = draw_bounding_boxes(combined_image, filtered_boxes.long(), labels=pred_labels, colors="red")
+        combined_output_path = os.path.join(combined_folder, image_file)
+        combined_image = combined_image.permute(1, 2, 0).cpu().numpy()
+        plt.imsave(combined_output_path, combined_image)
 
-        output_image = output_image.permute(1, 2, 0).cpu().numpy()
-        plt.imsave(output_path, output_image)
-        print(f"Saved analyzed image to {output_path}")
+        # QUALITATIVE AND JUST-MASK OUTPUTS
+        for class_id, class_name in ID_TO_NAME.items():
+            if class_name == "Background":
+                continue
+
+            class_indices = [i for i, label in enumerate(labels) if label.item() == class_id and scores[i] >= confidence_threshold]
+            class_masks = masks[class_indices]
+            
+
+            qualitative_image = draw_segmentation_masks(image_display.clone(), class_masks, alpha=0.5, colors=ID_TO_COLOR[class_id])
+            qualitative_output_path = os.path.join(qualitative_folder, class_name, image_file)
+            qualitative_image = qualitative_image.permute(1, 2, 0).cpu().numpy()
+            plt.imsave(qualitative_output_path, qualitative_image)
+
+            black_background = torch.zeros_like(image_display)
+            just_mask_image = draw_segmentation_masks(black_background, class_masks, alpha=1.0, colors=ID_TO_COLOR[class_id])
+            just_mask_output_path = os.path.join(just_mask_folder, class_name, image_file)
+            just_mask_image = just_mask_image.permute(1, 2, 0).cpu().numpy()
+            plt.imsave(just_mask_output_path, just_mask_image)
+
+        print(f"Processed and saved outputs for {image_file}")
+
+
+def init(model_path, case_name, input_folder):
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    num_classes = len(ID_TO_NAME)
+    model = get_model_instance_segmentation(num_classes)
+    if case_name != "no-finetuning":
+        model.load_state_dict(torch.load(model_path, map_location=device))
+    else:
+        print("... no finetuning")
+    model.to(device)
+    model.eval()
+
+    eval_transform = get_transform(train=False)
+    output_folder= f""
+    analyze_and_save_images(input_folder, output_folder, model=model, device=device, eval_transform=eval_transform)
 
 input_folder = r""
-output_folder= r""
-analyze_and_save_images(input_folder, output_folder)
+
+model_path = r""
+init(model_path=model_path, case_name="...", input_folder=input_folder)
 

@@ -25,8 +25,8 @@ The scripts then save the models in the same path where the scripts are located.
 LeRF and feature splatting are explained in the respective repositories. Pre-trained models can be downloaded from [this share](https://bwsyncandshare.kit.edu/s/WKsJY3EdDQcX7kK).
 
 ## Using Mask R-CNN and ResNet + SAM - Approach
-For Mask R-CNN, the script [M-RCNN_identifyer.py](./M-RCNN_identifier.py) can be used. In line 66, the path to the finetuned model must be entered. In line 124, the path to the images to be analyzed. (The test images from the thesis can be found at [this link](https://bwsyncandshare.kit.edu/s/cp8TQoXe3BWMfqA))
-In line 125, the path to the output folder can be stored where the images with the masking should be saved.
+For Mask R-CNN, the script [M-RCNN_identifyer.py](./M-RCNN_identifier.py) can be used. In line 173, the path to the finetuned model must be entered. In line 171, the path to the images to be analyzed. (The test images from the thesis can be found at [this link](https://bwsyncandshare.kit.edu/s/cp8TQoXe3BWMfqA))
+In line 168, the path to the output folder can be stored where the images with the masking should be saved. In Line 174 you have to type in a case name how your model should be called. If it hase no finetuning you can type in "no-finetuning" and it will load automatically a pretrained standard pytorch mask r-cnn model. if you type in sth else it will search for the model-path which you provided in line 173.
 
 The script [ResNet_identifier.py](./ResNet_identifier.py) can be used for the ResNet + SAM approach. It is assumed that a SAM model can be found under the path “./chkpts/sam_vit_h_4b8939.pth”. This can be changed if necessary on line 127. A SAM model can be downloaded from [this link](https://github.com/facebookresearch/segment-anything?tab=readme-ov-file#model-checkpoints). (In this Project the Model ViT-H SAM was used)
 
